@@ -9,9 +9,6 @@ problems exhibiting a diverse set of properties.
 
 It is a Python library that uses [TensorFlow](https://www.tensorflow.org/).
 
-**Contact**. This repository is maintained by [Mingyu Lu]. Feel free to reach out directly at [mingyulu@mit.edu](mailto:mingyulu@mit.edu) with any questions or comments.
-
-
 We first briefly introduce contextual bandits, Thompson sampling, enumerate the
 implemented algorithms, and the available data sources. Then, we provide a
 simple complete example illustrating how to use the library.
