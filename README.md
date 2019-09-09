@@ -1,9 +1,6 @@
-# Deep Bayesian Bandits Library
+# Towards uncertainty aware treatment assignments inprecision oncology. An evolving contextual banditproblem
 
-This library corresponds to the *[Deep Bayesian Bandits Showdown: An Empirical
-Comparison of Bayesian Deep Networks for Thompson
-Sampling](https://arxiv.org/abs/1802.09127)* paper, published in
-[ICLR](https://iclr.cc/) 2018. We provide a benchmark to test decision-making
+This is the implementation of treatment assignment with *[Deep Bayesian Bandits](https://arxiv.org/abs/1802.09127)* paper, published in [ICLR](https://iclr.cc/) 2018. We provide a benchmark to test decision-making
 algorithms for contextual-bandits. In particular, the current library implements
 a variety of algorithms (many of them based on approximate Bayesian Neural
 Networks and Thompson sampling), and a number of real and syntethic data
@@ -11,21 +8,7 @@ problems exhibiting a diverse set of properties.
 
 It is a Python library that uses [TensorFlow](https://www.tensorflow.org/).
 
-We encourage contributors to add new approximate Bayesian Neural Networks or,
-more generally, contextual bandits algorithms to the library. Also, we would
-like to extend the data sources over time, so we warmly encourage contributions
-in this front too!
-
-Please, use the following when citing the code or the paper:
-
-```
-@article{riquelme2018deep, title={Deep Bayesian Bandits Showdown: An Empirical
-Comparison of Bayesian Deep Networks for Thompson Sampling},
-author={Riquelme, Carlos and Tucker, George and Snoek, Jasper},
-journal={International Conference on Learning Representations, ICLR.}, year={2018}}
-```
-
-**Contact**. This repository is maintained by [Carlos Riquelme](http://rikel.me) ([rikel](https://github.com/rikel)). Feel free to reach out directly at [rikel@google.com](mailto:rikel@google.com) with any questions or comments.
+**Contact**. This repository is maintained by [Mingyu Lu][Mingyu Lu]. Feel free to reach out directly at [mingyulu@mit.edu](mailto:mingyulu@mit.edu) with any questions or comments.
 
 
 We first briefly introduce contextual bandits, Thompson sampling, enumerate the
@@ -80,158 +63,6 @@ sampling from it) is often intractable for highly parameterized models like deep
 neural networks. The algorithms we list in the next section provide tractable
 *approximations* that can be used in combination with Thompson Sampling to solve
 the contextual bandit problem.
-
-## Algorithms
-
-The Deep Bayesian Bandits library includes the following algorithms (see the
-[paper](https://arxiv.org/abs/1802.09127) for further details):
-
-1.  **Linear Algorithms**. As a powerful baseline, we provide linear algorithms.
-    In particular, we focus on the exact Bayesian linear regression
-    implementation, while it is easy to derive the greedy OLS version (possibly,
-    with epsilon-greedy exploration). The algorithm is implemented in
-    *linear_full_posterior_sampling.py*, and it is instantiated as follows:
-
-    ```
-        linear_full = LinearFullPosteriorSampling('MyLinearTS', my_hparams)
-    ```
-
-2.  **Neural Linear**. We introduce an algorithm we call Neural Linear, which
-    operates by learning a neural network to map contexts to rewards for each
-    action, and ---simultaneously--- it updates a Bayesian linear regression in
-    the last layer (i.e., the one that maps the final representation **z** to
-    the rewards **r**). Thompson Sampling samples the linear parameters
-    &beta;<sub>i</sub> for each action *i*, but keeps the network that computes the
-    representation. Then, both parts (network and Bayesian linear regression)
-    are updated, possibly at different frequencies. The algorithm is implemented
-    in *neural_linear_sampling.py*, and we create an algorithm instance like
-    this:
-
-    ```
-        neural_linear = NeuralLinearPosteriorSampling('MyNLinear', my_hparams)
-    ```
-
-3.  **Neural Greedy**. Another standard benchmark is to train a neural network
-    that maps contexts to rewards, and at each time *t* just acts greedily
-    according to the current model. In particular, this approach does *not*
-    explicitly use Thompson Sampling. However, due to stochastic gradient
-    descent, there is still some randomness in its output. It is
-    straight-forward to add epsilon-greedy exploration to choose random
-    actions with probability &epsilon; &isin; (0, 1). The algorithm is
-    implemented in *neural_bandit_model.py*, and it is used together with
-    *PosteriorBNNSampling* (defined in *posterior_bnn_sampling.py*) by calling:
-
-    ```
-      neural_greedy = PosteriorBNNSampling('MyNGreedy', my_hparams, 'RMSProp')
-    ```
-
-4.  **Stochastic Variational Inference**, Bayes by Backpropagation. We implement
-    a Bayesian neural network by modeling each individual weight posterior as a
-    univariate Gaussian distribution: w<sub>ij</sub> &sim; N(&mu;<sub>ij</sub>, &sigma;<sub>ij</sub><sup>2</sup>).
-    Thompson sampling then samples a network at each time step
-    by sampling each weight independently. The variational approach consists in
-    maximizing a proxy for maximum likelihood of the observed data, the ELBO or
-    variational lower bound, to fit the values of &mu;<sub>ij</sub>, &sigma;<sub>ij</sub><sup>2</sup>
-    for every *i, j*.
-
-    See [Weight Uncertainty in Neural
-    Networks](https://arxiv.org/abs/1505.05424).
-
-    The BNN algorithm is implemented in *variational_neural_bandit_model.py*,
-    and it is used together with *PosteriorBNNSampling* (defined in
-    *posterior_bnn_sampling.py*) by calling:
-
-    ```
-        bbb = PosteriorBNNSampling('myBBB', my_hparams, 'Variational')
-    ```
-
-5.  **Expectation-Propagation**, Black-box alpha-divergence minimization.
-    The family of expectation-propagation algorithms is based on the message
-    passing framework . They iteratively approximate the posterior by updating a
-    single approximation factor (or site) at a time, which usually corresponds
-    to the likelihood of one data point. We focus on methods that directly
-    optimize the global EP objective via stochastic gradient descent, as, for
-    instance, Power EP. For further details see original paper below.
-
-    See [Black-box alpha-divergence
-    Minimization](https://arxiv.org/abs/1511.03243).
-
-    We create an instance of the algorithm like this:
-
-    ```
-        bb_adiv = PosteriorBNNSampling('MyEP', my_hparams, 'AlphaDiv')
-    ```
-
-6.  **Dropout**. Dropout is a training technique where the output of each neuron
-    is independently zeroed out with probability *p* at each forward pass.
-    Once the network has been trained, dropout can still be used to obtain a
-    distribution of predictions for a specific input. Following the best action
-    with respect to the random dropout prediction can be interpreted as an
-    implicit form of Thompson sampling. The code for dropout is the same as for
-    Neural Greedy (see above), but we need to set two hyper-parameters:
-    *use_dropout=True* and *keep_prob=p* where *p* takes the desired value in
-    (0, 1). Then:
-
-    ```
-        dropout = PosteriorBNNSampling('MyDropout', my_hparams, 'RMSProp')
-    ```
-
-7.  **Monte Carlo Methods**. To be added soon.
-
-8.  **Bootstrapped Networks**. This algorithm trains simultaneously and in
-    parallel **q** neural networks based on different datasets D<sub>1</sub>, ..., D<sub>q</sub>. The way those datasets are collected is by adding each new collected
-    datapoint (X<sub>t</sub>, a<sub>t</sub>, r<sub>t</sub>) to each dataset *D<sub>i</sub>* independently and with
-    probability p &isin; (0, 1]. Therefore, the main hyperparameters of the
-    algorithm are **(q, p)**. In order to choose an action for a new context,
-    one of the **q** networks is first selected with uniform probability (i.e.,
-    *1/q*). Then, the best action according to the *selected* network is
-    played.
-
-    See [Deep Exploration via Bootstrapped
-    DQN](https://arxiv.org/abs/1602.04621).
-
-    The algorithm is implemented in *bootstrapped_bnn_sampling.py*, and we
-    instantiate it as (where *my_hparams* contains both **q** and **p**):
-
-    ```
-        bootstrap = BootstrappedBNNSampling('MyBoot', my_hparams)
-    ```
-
-9.  **Parameter-Noise**. Another approach to approximate a distribution over
-    neural networks (or more generally, models) that map contexts to rewards,
-    consists in randomly perturbing a point estimate trained by Stochastic
-    Gradient Descent on the data. The Parameter-Noise algorithm uses a heuristic
-    to control the amount of noise &sigma;<sub>t</sub><sup>2</sup> it adds independently to the
-    parameters representing a neural network: &theta;<sub>t</sub><sup>'</sup> = &theta;<sub>t</sub> + &epsilon; where
-    &epsilon; &sim; N(0, &sigma;<sub>t</sub><sup>2</sup> Id).
-    After using &theta;<sub>t</sub><sup>'</sup> for decision making, the following SGD
-    training steps start again from &theta;<sub>t</sub>. The key hyperparameters to set
-    are those controlling the noise heuristic.
-
-    See [Parameter Space Noise for
-    Exploration](https://arxiv.org/abs/1706.01905).
-
-    The algorithm is implemented in *parameter_noise_sampling.py*, and we create
-    an instance by calling:
-
-    ```
-        parameter_noise = ParameterNoiseSampling('MyParamNoise', my_hparams)
-    ```
-
-10. **Gaussian Processes**. Another standard benchmark are Gaussian Processes,
-    see *Gaussian Processes for Machine Learning* by Rasmussen and Williams for
-    an introduction. To model the expected reward of different actions, we fit a
-    multitask GP.
-
-    See [Multi-task Gaussian Process
-    Prediction](http://papers.nips.cc/paper/3189-multi-task-gaussian-process-prediction.pdf).
-
-    Our implementation is provided in *multitask_gp.py*, and it is instantiated
-    as follows:
-
-    ```
-        gp = PosteriorBNNSampling('MyMultitaskGP', my_hparams, 'GP')
-    ```
 
 In the code snippet at the bottom, we show how to instantiate some of these
 algorithms, and how to run the contextual bandit simulator, and display the
@@ -338,103 +169,11 @@ In datasets 4-7, each feature of the dataset is normalized first.
 
 ## Usage: Basic Example
 
-This library requires Tensorflow, Numpy, and Pandas.
+This library requires Tensorflow, Numpy, Pandas, and Deep Bayesian Bandits.
 
-The file *example_main.py* provides a complete example on how to use the
+The file *treatment_assignment.py* provides a complete example on how to use the
 library. We run the code:
 
 ```
-    python example_main.py
-```
-
-**Do not forget to** configure the routes to the data files at the top of *example_main.py*.
-
-For example, we can run the Mushroom bandit for 2000 contexts on a few
-algorithms as follows:
-
-```
-  # Problem parameters
-  num_contexts = 2000
-
-  # Choose data source among:
-  # {linear, sparse_linear, mushroom, financial, jester,
-  #  statlog, adult, covertype, census, wheel}
-  data_type = 'mushroom'
-
-  # Create dataset
-  sampled_vals = sample_data(data_type, num_contexts)
-  dataset, opt_rewards, opt_actions, num_actions, context_dim = sampled_vals
-
-  # Define hyperparameters and algorithms
-  hparams_linear = tf.contrib.training.HParams(num_actions=num_actions,
-                                               context_dim=context_dim,
-                                               a0=6,
-                                               b0=6,
-                                               lambda_prior=0.25,
-                                               initial_pulls=2)
-
-  hparams_dropout = tf.contrib.training.HParams(num_actions=num_actions,
-                                                context_dim=context_dim,
-                                                init_scale=0.3,
-                                                activation=tf.nn.relu,
-                                                layer_sizes=[50],
-                                                batch_size=512,
-                                                activate_decay=True,
-                                                initial_lr=0.1,
-                                                max_grad_norm=5.0,
-                                                show_training=False,
-                                                freq_summary=1000,
-                                                buffer_s=-1,
-                                                initial_pulls=2,
-                                                optimizer='RMS',
-                                                reset_lr=True,
-                                                lr_decay_rate=0.5,
-                                                training_freq=50,
-                                                training_epochs=100,
-                                                keep_prob=0.80,
-                                                use_dropout=True)
-
-  ### Create hyper-parameter configurations for other algorithms
-    [...]
-
-  algos = [
-      UniformSampling('Uniform Sampling', hparams),
-      PosteriorBNNSampling('Dropout', hparams_dropout, 'RMSProp'),
-      PosteriorBNNSampling('BBB', hparams_bbb, 'Variational'),
-      NeuralLinearPosteriorSampling('NeuralLinear', hparams_nlinear),
-      LinearFullPosteriorSampling('LinFullPost', hparams_linear),
-      BootstrappedBNNSampling('BootRMS', hparams_boot),
-      ParameterNoiseSampling('ParamNoise', hparams_pnoise),
-  ]
-
-  # Run contextual bandit problem
-  t_init = time.time()
-  results = run_contextual_bandit(context_dim, num_actions, dataset, algos)
-  _, h_rewards = results
-
-  # Display results
-  display_results(algos, opt_rewards, opt_actions, h_rewards, t_init, data_type)
-
-```
-
-The previous code leads to final results that look like:
-
-```
----------------------------------------------------
----------------------------------------------------
-mushroom bandit completed after 69.8401839733 seconds.
----------------------------------------------------
-  0) LinFullPost         |               total reward =     4365.0.
-  1) NeuralLinear        |               total reward =     4110.0.
-  2) Dropout             |               total reward =     3430.0.
-  3) ParamNoise          |               total reward =     3270.0.
-  4) BootRMS             |               total reward =     3050.0.
-  5) BBB                 |               total reward =     2505.0.
-  6) Uniform Sampling    |               total reward =    -4930.0.
----------------------------------------------------
-Optimal total reward = 5235.
-Frequency of optimal actions (action, frequency):
-[[0, 953], [1, 1047]]
----------------------------------------------------
----------------------------------------------------
+    python treatment_assignment.py
 ```
