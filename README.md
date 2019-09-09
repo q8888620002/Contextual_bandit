@@ -41,7 +41,7 @@ beneficial personalized action under some metric (the reward).
 
 ## Usage: Basic Example
 
-This library requires Tensorflow, Numpy, Pandas, and Deep Bayesian Bandits(https://github.com/tensorflow/models/tree/master/research/deep_contextual_bandits).
+This library requires Tensorflow, Numpy, Pandas, and [Deep Bayesian Bandits](https://github.com/tensorflow/models/tree/master/research/deep_contextual_bandits).
 
 The file *treatment_assignment.py* provides a complete example on how to use the
 library. We run the code:
