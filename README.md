@@ -1,13 +1,7 @@
 # Towards uncertainty aware treatment assignments inprecision oncology. 
 # An evolving contextual banditproblem
 
-This is the implementation of treatment assignment with *[Deep Bayesian Bandits](https://arxiv.org/abs/1802.09127)* paper, published in [ICLR](https://iclr.cc/) 2018. We provide a benchmark to test decision-making
-algorithms for contextual-bandits. In particular, the current library implements
-a variety of algorithms (many of them based on approximate Bayesian Neural
-Networks and Thompson sampling), and a number of real and syntethic data
-problems exhibiting a diverse set of properties.
-
-It is a Python library that uses [TensorFlow](https://www.tensorflow.org/).
+This is the implementation of treatment assignment with *[Deep Bayesian Bandits](https://arxiv.org/abs/1802.09127)* paper, published in [ICLR](https://iclr.cc/) 2018. 
 
 We first briefly introduce contextual bandits, Thompson sampling, enumerate the
 implemented algorithms, and the available data sources. Then, we provide a
@@ -41,7 +35,7 @@ beneficial personalized action under some metric (the reward).
 
 ## Usage: Basic Example
 
-This library requires Tensorflow, Numpy, Pandas, and [Deep Bayesian Bandits](https://github.com/tensorflow/models/tree/master/research/deep_contextual_bandits).
+This library requires [TensorFlow](https://www.tensorflow.org/), Numpy, Pandas, and [Deep Bayesian Bandits](https://github.com/tensorflow/models/tree/master/research/deep_contextual_bandits).
 
 The file *treatment_assignment.py* provides a complete example on how to use the
 library. We run the code:
