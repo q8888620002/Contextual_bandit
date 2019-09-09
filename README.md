@@ -1,4 +1,5 @@
-# Towards uncertainty aware treatment assignments inprecision oncology. An evolving contextual banditproblem
+# Towards uncertainty aware treatment assignments inprecision oncology. 
+# An evolving contextual banditproblem
 
 This is the implementation of treatment assignment with *[Deep Bayesian Bandits](https://arxiv.org/abs/1802.09127)* paper, published in [ICLR](https://iclr.cc/) 2018. We provide a benchmark to test decision-making
 algorithms for contextual-bandits. In particular, the current library implements
